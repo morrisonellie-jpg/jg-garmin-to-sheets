@@ -2,18 +2,18 @@ name: Garmin to Google Sheets Sync
 
 on:
   schedule:
-    - cron: '0 11 * * *' # Runs every day at 11:00 UTC (6 AM EST)
-  workflow_dispatch: # Allows you to run it manually
+    - cron: '0 11 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -21,10 +21,16 @@ jobs:
         run: |
           pip install .
 
+      - name: Create Credentials Folder
+        run: mkdir -p credentials
+
+      - name: Create Google Key File
+        run: echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials/client_secret.json
+
       - name: Run Garmin Sync
         env:
           USER1_GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
           USER1_GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
           USER1_SHEET_ID: ${{ secrets.SHEET_ID }}
         run: |
-          python -m src.main --output 2 --profile USER1 --start $(date -d "yesterday" +%Y-%m-%d) --end $(date +%Y-%m-%d)
+          python -m src.main --output 2 --profile USER1 --start $(date -d "7 days ago" +%Y-%m-%d) --end $(date +%Y-%m-%d)
