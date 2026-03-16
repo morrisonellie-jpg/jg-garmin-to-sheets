@@ -22,22 +22,19 @@ jobs:
           pip install .
           pip install python-dotenv
 
-      - name: Create Credentials Folder
-        run: mkdir -p credentials
-
-      - name: Create Google Key File
-        run: echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials/client_secret.json
-
-      - name: Run Garmin Sync
-        env:
-          USER1_GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
-          USER1_GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
-          USER1_SHEET_ID: ${{ secrets.SHEET_ID }}
+      - name: Setup Folders and Files
         run: |
-          # This line forces the environment variables into a .env file the script can read
+          mkdir -p credentials
+          # Use a heredoc to ensure the JSON is written exactly as it is in secrets
+          cat << 'EOF' > credentials/client_secret.json
+          ${{ secrets.GOOGLE_CREDENTIALS }}
+          EOF
+          
+          # Create the .env file for Garmin credentials
           echo "USER1_GARMIN_EMAIL=${{ secrets.GARMIN_EMAIL }}" > .env
           echo "USER1_GARMIN_PASSWORD=${{ secrets.GARMIN_PASSWORD }}" >> .env
           echo "USER1_SHEET_ID=${{ secrets.SHEET_ID }}" >> .env
-          
-          # Run the script
+
+      - name: Run Garmin Sync
+        run: |
           python -m src.main --output 2 --profile USER1 --start $(date -d "7 days ago" +%Y-%m-%d) --end $(date +%Y-%m-%d)
