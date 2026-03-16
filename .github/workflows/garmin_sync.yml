@@ -1,0 +1,30 @@
+name: Garmin to Google Sheets Sync
+
+on:
+  schedule:
+    - cron: '0 11 * * *' # Runs every day at 11:00 UTC (6 AM EST)
+  workflow_dispatch: # Allows you to run it manually
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install .
+
+      - name: Run Garmin Sync
+        env:
+          USER1_GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
+          USER1_GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+          USER1_SHEET_ID: ${{ secrets.SHEET_ID }}
+        run: |
+          python -m src.main --output 2 --profile USER1 --start $(date -d "yesterday" +%Y-%m-%d) --end $(date +%Y-%m-%d)
