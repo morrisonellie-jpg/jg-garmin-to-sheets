@@ -20,6 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install .
+          pip install python-dotenv
 
       - name: Create Credentials Folder
         run: mkdir -p credentials
@@ -33,4 +34,10 @@ jobs:
           USER1_GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
           USER1_SHEET_ID: ${{ secrets.SHEET_ID }}
         run: |
+          # This line forces the environment variables into a .env file the script can read
+          echo "USER1_GARMIN_EMAIL=${{ secrets.GARMIN_EMAIL }}" > .env
+          echo "USER1_GARMIN_PASSWORD=${{ secrets.GARMIN_PASSWORD }}" >> .env
+          echo "USER1_SHEET_ID=${{ secrets.SHEET_ID }}" >> .env
+          
+          # Run the script
           python -m src.main --output 2 --profile USER1 --start $(date -d "7 days ago" +%Y-%m-%d) --end $(date +%Y-%m-%d)
